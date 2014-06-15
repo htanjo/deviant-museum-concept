@@ -1,37 +1,45 @@
-var scene, camera, renderer;
-var geometry, material, mesh;
+(function (window) {
+  'use strict';
 
-init();
-animate();
+  var THREE = window.THREE;
+  var requestAnimationFrame = window.requestAnimationFrame;
 
-function init() {
+  var scene, camera, renderer;
+  var geometry, material, mesh;
 
-  scene = new THREE.Scene();
+  function init() {
 
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-  camera.position.z = 1000;
+    scene = new THREE.Scene();
 
-  geometry = new THREE.BoxGeometry( 200, 200, 200 );
-  material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-  mesh = new THREE.Mesh( geometry, material );
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+    camera.position.z = 1000;
 
-  scene.add( mesh );
+    geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+    mesh = new THREE.Mesh( geometry, material );
 
-  renderer = new THREE.CanvasRenderer();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+    scene.add( mesh );
 
-  document.body.appendChild( renderer.domElement );
+    renderer = new THREE.CanvasRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
 
-}
+    document.body.appendChild( renderer.domElement );
 
-function animate() {
+  }
 
-  // note: three.js includes requestAnimationFrame shim
-  requestAnimationFrame( animate );
+  function animate() {
 
-  mesh.rotation.x += 0.01;
-  mesh.rotation.y += 0.02;
+    // note: three.js includes requestAnimationFrame shim
+    requestAnimationFrame( animate );
 
-  renderer.render( scene, camera );
+    mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.02;
 
-}
+    renderer.render( scene, camera );
+
+  }
+
+  init();
+  animate();
+
+}(window));
