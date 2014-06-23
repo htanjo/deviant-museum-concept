@@ -18,11 +18,19 @@
     <!-- endbuild -->
   </head>
   <body>
+    <div id="blocker">
+      <div id="instructions">
+        <span style="font-size:40px">Click to play</span>
+        <br>
+        (W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+      </div>
+    </div>
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/three.js/three.min.js"></script>
     <!-- endbower -->
+    <script src="scripts/PointerLockControls.js"></script>
     <!-- endbuild -->
     <!-- build:js({app,.tmp}) scripts/main.js -->
     <script src="scripts/main.js"></script>
