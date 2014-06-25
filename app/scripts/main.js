@@ -117,9 +117,7 @@
   function initMesh() {
 
     var floorTexture = THREE.ImageUtils.loadTexture('images/floor.png');
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(sizeX / 10, sizeY / 10);
+    floorTexture.anisotropy = 4;
 
     var floorGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
     var floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture});
@@ -132,10 +130,6 @@
     scene.add(floor);
 
     var wallTexture = THREE.ImageUtils.loadTexture('images/wall.png');
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set(sizeX / 10, sizeY / 10);
-
     var wallGeometry = new THREE.PlaneGeometry(sizeX, height, sizeX / 50, height / 50);
     var wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture});
 
@@ -170,7 +164,11 @@
 
     scene.add(wall3);
 
-    var ceiling = new THREE.Mesh(floorGeometry, wallMaterial);
+    var ceilingTexture = THREE.ImageUtils.loadTexture('images/ceiling.png');
+    var ceilingGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
+    var ceilingMaterial = new THREE.MeshLambertMaterial({map: ceilingTexture});
+
+    var ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
     ceiling.rotation.x = 90 / 180 * Math.PI;
     ceiling.position.x = sizeX / 2;
     ceiling.position.y = height;
@@ -186,7 +184,31 @@
     art0.position.y = 20;
     art0.position.z = 1;
 
-    scene.add(art0);
+    // scene.add(art0);
+
+    var personTexture = THREE.ImageUtils.loadTexture('images/person.png');
+    var personGeometry = new THREE.PlaneGeometry(10, 20, 2, 4);
+    var personMaterial = new THREE.MeshLambertMaterial({map: personTexture});
+    personMaterial.side = THREE.DoubleSide;
+    personMaterial.transparent = true;
+    var person = new THREE.Mesh(personGeometry, personMaterial);
+    person.position.x = 35;
+    person.position.y = 10;
+    person.position.z = 20;
+
+    scene.add(person);
+
+    var peopleTexture = THREE.ImageUtils.loadTexture('images/people.png');
+    var peopleGeometry = new THREE.PlaneGeometry(20, 20, 2, 4);
+    var peopleMaterial = new THREE.MeshLambertMaterial({map: peopleTexture});
+    peopleMaterial.side = THREE.DoubleSide;
+    peopleMaterial.transparent = true;
+    var people = new THREE.Mesh(peopleGeometry, peopleMaterial);
+    people.position.x = 50;
+    people.position.y = 10;
+    people.position.z = 10;
+
+    scene.add(people);
 
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -195,7 +217,7 @@
 
   function initRenderer() {
 
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setClearColor(0xffffff);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
