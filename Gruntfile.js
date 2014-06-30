@@ -194,7 +194,10 @@ module.exports = function (grunt) {
     bowerInstall: {
       app: {
         src: ['<%= config.app %>/index.html'],
-        exclude: ['bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap.js'],
+        exclude: [
+          'bower_components/ammo.js/builds/ammo.js',
+          'bower_components/physijs/physijs_worker.js'
+        ],
         overrides: {
           'threejs': {
             main: 'build/three.js'

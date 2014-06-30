@@ -3,6 +3,7 @@
 
   var THREE = window.THREE;
   var requestAnimationFrame = window.requestAnimationFrame;
+  var Physijs = window.Physijs;
 
   var scene;
   var camera;
@@ -22,6 +23,10 @@
   var havePointerLock = 'pointerLockElement' in document ||
                         'mozPointerLockElement' in document ||
                         'webkitPointerLockElement' in document;
+
+  // Physijs configuration
+  Physijs.scripts.worker = '/bower_components/physijs/physijs_worker.js';
+  Physijs.scripts.ammo = '/bower_components/physijs/examples/js/ammo.js';
 
   if (havePointerLock) {
 
@@ -70,7 +75,7 @@
 
   function init() {
 
-    scene = new THREE.Scene();
+    scene = new Physijs.Scene();
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
     initCamera();
@@ -102,13 +107,21 @@
 
     var floorGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
     var floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture});
-    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    var floor = new Physijs.PlaneMesh(floorGeometry, floorMaterial);
 
     floor.rotation.x = -90 / 180 * Math.PI;
     floor.position.x = sizeX / 2;
     floor.position.z = sizeY / 2;
 
     scene.add(floor);
+
+    // Physics object
+    var box = new Physijs.BoxMesh(
+      new THREE.CubeGeometry(5, 5, 5),
+      new THREE.MeshBasicMaterial({color: 0x888888})
+    );
+    box.position.set(60, 10, 30);
+    scene.add(box);
 
     var wallTexture = THREE.ImageUtils.loadTexture('images/wall.png');
     var wallGeometry = new THREE.PlaneGeometry(sizeX, height, sizeX / 50, height / 50);
@@ -214,13 +227,13 @@
 
   function animate() {
 
-    requestAnimationFrame( animate );
+    requestAnimationFrame(animate);
 
     ray.ray.origin.copy(controls.getObject().position);
     ray.ray.origin.y -= 10;
 
+    scene.simulate();   // Physics
     controls.update();
-
     renderer.render(scene, camera);
 
   }
