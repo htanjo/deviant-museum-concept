@@ -5,8 +5,8 @@
     "modernizr": "~2.6.2",
     "jquery": "~1.11.0",
     "normalize.css": "~3.0.1",
-    "threejs": "r59",
-    "physijs": "*"
+    "threejs": "r51",
+    "cannon.js": "schteppe/cannon.js#~0.5.0"
   },
   "devDependencies": {}
 }

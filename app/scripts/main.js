@@ -3,7 +3,7 @@
 
   var THREE = window.THREE;
   var requestAnimationFrame = window.requestAnimationFrame;
-  var Physijs = window.Physijs;
+  var PointerLockControls = window.PointerLockControls;
 
   var scene;
   var camera;
@@ -11,6 +11,7 @@
 
   var controls;
   var ray;
+  var time = Date.now();
 
   var sizeX = 100;
   var sizeY = 100;
@@ -23,10 +24,6 @@
   var havePointerLock = 'pointerLockElement' in document ||
                         'mozPointerLockElement' in document ||
                         'webkitPointerLockElement' in document;
-
-  // Physijs configuration
-  Physijs.scripts.worker = '/bower_components/physijs/physijs_worker.js';
-  Physijs.scripts.ammo = '/bower_components/physijs/examples/js/ammo.js';
 
   if (havePointerLock) {
 
@@ -75,7 +72,7 @@
 
   function init() {
 
-    scene = new Physijs.Scene();
+    scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
     initCamera();
@@ -91,12 +88,12 @@
 
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 10000);
 
-    controls = new THREE.PointerLockControls(camera);
+    controls = new PointerLockControls(camera);
     controls.getObject().position.set(sizeX / 2, 0, sizeY / 2);
     scene.add(controls.getObject());
 
-    ray = new THREE.Raycaster();
-    ray.ray.direction.set(0, -1, 0);
+    ray = new THREE.Ray();
+    ray.direction.set(0, -1, 0);
 
   }
 
@@ -107,21 +104,13 @@
 
     var floorGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
     var floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture});
-    var floor = new Physijs.PlaneMesh(floorGeometry, floorMaterial);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
     floor.rotation.x = -90 / 180 * Math.PI;
     floor.position.x = sizeX / 2;
     floor.position.z = sizeY / 2;
 
     scene.add(floor);
-
-    // Physics object
-    var box = new Physijs.BoxMesh(
-      new THREE.CubeGeometry(5, 5, 5),
-      new THREE.MeshBasicMaterial({color: 0x888888})
-    );
-    box.position.set(60, 10, 30);
-    scene.add(box);
 
     var wallTexture = THREE.ImageUtils.loadTexture('images/wall.png');
     var wallGeometry = new THREE.PlaneGeometry(sizeX, height, sizeX / 50, height / 50);
@@ -229,12 +218,9 @@
 
     requestAnimationFrame(animate);
 
-    ray.ray.origin.copy(controls.getObject().position);
-    ray.ray.origin.y -= 10;
-
-    scene.simulate();   // Physics
-    controls.update();
+    controls.update(Date.now() - time);
     renderer.render(scene, camera);
+    time = Date.now();
 
   }
 
