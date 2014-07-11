@@ -1,5 +1,5 @@
 {
-  "name": "museum",
+  "name": "deviant-museum",
   "private": true,
   "dependencies": {
     "modernizr": "~2.6.2",
