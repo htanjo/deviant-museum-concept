@@ -1,22 +1,34 @@
 (function (window) {
   'use strict';
 
+  // Modules
   var THREE = window.THREE;
+  var CANNON = window.CANNON;
   var requestAnimationFrame = window.requestAnimationFrame;
   var PointerLockControls = window.PointerLockControls;
 
+  // Three
   var scene;
   var camera;
   var renderer;
 
+  // Cannon
+  var world;
+  var physicsMaterial;
+  var sphereShape;
+  var sphereBody;
+  var dt = 1 / 60;
+
+  // PointerLockControls
   var controls;
-  var ray;
   var time = Date.now();
 
-  var sizeX = 100;
-  var sizeY = 100;
-  var height = 50;
+  // Application
+  var sizeX = 10;
+  var sizeY = 10;
+  var height = 5;
 
+  // DOM
   var blocker = document.getElementById('blocker');
   var instructions = document.getElementById('instructions');
 
@@ -75,7 +87,8 @@
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
-    initCamera();
+    initPhysics();
+    initControls();
     initMesh();
     initRenderer();
 
@@ -84,16 +97,63 @@
 
   }
 
-  function initCamera() {
+  function initPhysics() {
+
+    world = new CANNON.World();
+    world.quatNormalizeSkip = 0;
+    world.quatNormalizeFast = false;
+
+    var solver = new CANNON.GSSolver();
+
+    world.defaultContactMaterial.contactEquationStiffness = 1e9;
+    world.defaultContactMaterial.contactEquationRegularizationTime = 4;
+
+    solver.iterations = 7;
+    solver.tolerance = 0.1;
+    var split = true;
+    if (split) {
+      world.solver = new CANNON.SplitSolver(solver);
+    }
+    else {
+      world.solver = solver;
+    }
+
+    world.gravity.set(0, -20, 0);
+    world.broadphase = new CANNON.NaiveBroadphase();
+
+    // Create a slippery material (friction coefficient = 0.0)
+    physicsMaterial = new CANNON.Material('slipperyMaterial');
+    var physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial,
+                                                            physicsMaterial,
+                                                            0.0, // friction coefficient
+                                                            0.3  // restitution
+                                                            );
+    // We must add the contact materials to the world
+    world.addContactMaterial(physicsContactMaterial);
+
+    // Create a sphere
+    var mass = 5;
+    var radius = 1.3;
+    sphereShape = new CANNON.Sphere(radius);
+    sphereBody = new CANNON.RigidBody(mass, sphereShape, physicsMaterial);
+    sphereBody.position.set(sizeX / 2, radius, sizeY / 2);
+    sphereBody.linearDamping = 0.9;
+    world.add(sphereBody);
+
+    // Create a plane
+    var groundShape = new CANNON.Plane();
+    var groundBody = new CANNON.RigidBody(0, groundShape, physicsMaterial);
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    world.add(groundBody);
+
+  }
+
+  function initControls() {
 
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 10000);
 
-    controls = new PointerLockControls(camera);
-    controls.getObject().position.set(sizeX / 2, 0, sizeY / 2);
+    controls = new PointerLockControls(camera, sphereBody);
     scene.add(controls.getObject());
-
-    ray = new THREE.Ray();
-    ray.direction.set(0, -1, 0);
 
   }
 
@@ -102,7 +162,7 @@
     var floorTexture = THREE.ImageUtils.loadTexture('images/floor.png');
     floorTexture.anisotropy = 4;
 
-    var floorGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
+    var floorGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX * 2, sizeY * 2);
     var floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture});
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
@@ -113,7 +173,7 @@
     scene.add(floor);
 
     var wallTexture = THREE.ImageUtils.loadTexture('images/wall.png');
-    var wallGeometry = new THREE.PlaneGeometry(sizeX, height, sizeX / 50, height / 50);
+    var wallGeometry = new THREE.PlaneGeometry(sizeX, height, sizeX * 2, height * 2);
     var wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture});
 
     var wall0 = new THREE.Mesh(wallGeometry, wallMaterial);
@@ -148,7 +208,7 @@
     scene.add(wall3);
 
     var ceilingTexture = THREE.ImageUtils.loadTexture('images/ceiling.png');
-    var ceilingGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX / 50, sizeY / 50);
+    var ceilingGeometry = new THREE.PlaneGeometry(sizeX, sizeY, sizeX * 2, sizeY * 2);
     var ceilingMaterial = new THREE.MeshLambertMaterial({map: ceilingTexture});
 
     var ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
@@ -170,26 +230,26 @@
     // scene.add(art0);
 
     var personTexture = THREE.ImageUtils.loadTexture('images/person.png');
-    var personGeometry = new THREE.PlaneGeometry(10, 20, 2, 4);
+    var personGeometry = new THREE.PlaneGeometry(1, 2, 2, 4);
     var personMaterial = new THREE.MeshLambertMaterial({map: personTexture});
     personMaterial.side = THREE.DoubleSide;
     personMaterial.transparent = true;
     var person = new THREE.Mesh(personGeometry, personMaterial);
-    person.position.x = 35;
-    person.position.y = 10;
-    person.position.z = 20;
+    person.position.x = 3.5;
+    person.position.y = 1;
+    person.position.z = 2;
 
     scene.add(person);
 
     var peopleTexture = THREE.ImageUtils.loadTexture('images/people.png');
-    var peopleGeometry = new THREE.PlaneGeometry(20, 20, 2, 4);
+    var peopleGeometry = new THREE.PlaneGeometry(2, 2, 4, 4);
     var peopleMaterial = new THREE.MeshLambertMaterial({map: peopleTexture});
     peopleMaterial.side = THREE.DoubleSide;
     peopleMaterial.transparent = true;
     var people = new THREE.Mesh(peopleGeometry, peopleMaterial);
-    people.position.x = 50;
-    people.position.y = 10;
-    people.position.z = 10;
+    people.position.x = 5;
+    people.position.y = 1;
+    people.position.z = 1;
 
     scene.add(people);
 
@@ -217,6 +277,15 @@
   function animate() {
 
     requestAnimationFrame(animate);
+
+    if (controls.enabled) {
+      world.step(dt);
+      // Update box positions
+      // for (var i = 0; i < boxes.length; i++) {
+      //   boxes[i].position.copy(boxMeshes[i].position);
+      //   boxes[i].quaternion.copy(boxMeshes[i].quaternion);
+      // }
+    }
 
     controls.update(Date.now() - time);
     renderer.render(scene, camera);

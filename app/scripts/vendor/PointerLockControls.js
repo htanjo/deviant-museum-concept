@@ -1,23 +1,35 @@
-var PointerLockControls = function ( camera ) {
+/**
+ * @author mrdoob / http://mrdoob.com/
+ * @author schteppe / https://github.com/schteppe
+ */
+var PointerLockControls = function ( camera, cannonBody ) {
 
+  var eyeYPos = 1.8;  // eyes are 1.8 meters above the ground
+  var velocityFactor = 0.1;
+  var jumpVelocity = 10;
   var scope = this;
 
   var pitchObject = new THREE.Object3D();
   pitchObject.add( camera );
 
   var yawObject = new THREE.Object3D();
-  yawObject.position.y = 10;
+  yawObject.position.y = eyeYPos;
   yawObject.add( pitchObject );
+
+  var quat = new THREE.Quaternion();
 
   var moveForward = false;
   var moveBackward = false;
   var moveLeft = false;
   var moveRight = false;
 
-  var isOnObject = false;
   var canJump = false;
 
-  var velocity = new THREE.Vector3();
+  cannonBody.addEventListener("collide",function(e){
+    canJump = true;
+  });
+
+  var velocity = cannonBody.velocity;
 
   var PI_2 = Math.PI / 2;
 
@@ -32,7 +44,6 @@ var PointerLockControls = function ( camera ) {
     pitchObject.rotation.x -= movementY * 0.002;
 
     pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
-
   };
 
   var onKeyDown = function ( event ) {
@@ -59,10 +70,11 @@ var PointerLockControls = function ( camera ) {
         break;
 
       case 32: // space
-        if ( canJump === true ) velocity.y += 10;
+        if ( canJump === true ){
+          velocity.y = jumpVelocity;
+        }
         canJump = false;
         break;
-
     }
 
   };
@@ -102,54 +114,46 @@ var PointerLockControls = function ( camera ) {
   this.enabled = false;
 
   this.getObject = function () {
-
     return yawObject;
-
   };
 
-  this.isOnObject = function ( boolean ) {
+  this.getDirection = function(targetVec){
+    targetVec.set(0,0,-1);
+    quat.multiplyVector3(targetVec);
+  }
 
-    isOnObject = boolean;
-    canJump = boolean;
-
-  };
-
+  // Moves the camera to the Cannon.js object position and adds velocity to the object if the run key is down
+  var inputVelocity = new THREE.Vector3();
   this.update = function ( delta ) {
 
     if ( scope.enabled === false ) return;
 
     delta *= 0.1;
 
-    velocity.x += ( - velocity.x ) * 0.08 * delta;
-    velocity.z += ( - velocity.z ) * 0.08 * delta;
+    inputVelocity.set(0,0,0);
 
-    velocity.y -= 0.25 * delta;
-
-    if ( moveForward ) velocity.z -= 0.12 * delta;
-    if ( moveBackward ) velocity.z += 0.12 * delta;
-
-    if ( moveLeft ) velocity.x -= 0.12 * delta;
-    if ( moveRight ) velocity.x += 0.12 * delta;
-
-    if ( isOnObject === true ) {
-
-      velocity.y = Math.max( 0, velocity.y );
-
+    if ( moveForward ){
+      inputVelocity.z = -velocityFactor * delta;
+    }
+    if ( moveBackward ){
+      inputVelocity.z = velocityFactor * delta;
     }
 
-    yawObject.translateX( velocity.x );
-    yawObject.translateY( velocity.y );
-    yawObject.translateZ( velocity.z );
-
-    if ( yawObject.position.y < 10 ) {
-
-      velocity.y = 0;
-      yawObject.position.y = 10;
-
-      canJump = true;
-
+    if ( moveLeft ){
+      inputVelocity.x = -velocityFactor * delta;
+    }
+    if ( moveRight ){
+      inputVelocity.x = velocityFactor * delta;
     }
 
+    // Convert velocity to world coordinates
+    quat.setFromEuler({x:pitchObject.rotation.x, y:yawObject.rotation.y, z:0},"XYZ");
+    quat.multiplyVector3(inputVelocity);
+
+    // Add to the object
+    velocity.x += inputVelocity.x;
+    velocity.z += inputVelocity.z;
+
+    cannonBody.position.copy(yawObject.position);
   };
-
 };
