@@ -133,7 +133,7 @@
 
     // Create a sphere
     var mass = 5;
-    var radius = 1.3;
+    var radius = 0.5;
     sphereShape = new CANNON.Sphere(radius);
     sphereBody = new CANNON.RigidBody(mass, sphereShape, physicsMaterial);
     sphereBody.position.set(sizeX / 2, radius, sizeY / 2);
@@ -172,7 +172,7 @@
 
   function initControls() {
 
-    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 100);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
 
     controls = new PointerLockControls(camera, sphereBody);
     scene.add(controls.getObject());
