@@ -146,11 +146,33 @@
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
     world.add(groundBody);
 
+    // Create walls
+    var wallShape = new CANNON.Box(new CANNON.Vec3(sizeX / 2, height / 2, 0.1));
+
+    var wallBody0 = new CANNON.RigidBody(0, wallShape, physicsMaterial);
+    wallBody0.position.set(sizeX / 2, height / 2, 0);
+    world.add(wallBody0);
+
+    var wallBody1 = new CANNON.RigidBody(0, wallShape, physicsMaterial);
+    wallBody1.position.set(0, height / 2, sizeY / 2);
+    wallBody1.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+    world.add(wallBody1);
+
+    var wallBody2 = new CANNON.RigidBody(0, wallShape, physicsMaterial);
+    wallBody2.position.set(sizeX, height / 2, sizeY / 2);
+    wallBody2.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), -Math.PI / 2);
+    world.add(wallBody2);
+
+    var wallBody3 = new CANNON.RigidBody(0, wallShape, physicsMaterial);
+    wallBody3.position.set(sizeX / 2, height / 2, sizeY);
+    wallBody3.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+    world.add(wallBody3);
+
   }
 
   function initControls() {
 
-    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 10000);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 100);
 
     controls = new PointerLockControls(camera, sphereBody);
     scene.add(controls.getObject());
