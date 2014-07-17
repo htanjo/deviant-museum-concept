@@ -366,6 +366,22 @@ module.exports = function (grunt) {
       }
     },
 
+    // Deployment
+    buildcontrol: {
+      options: {
+        dir: 'dist',
+        commit: true,
+        push: true,
+        message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
+      },
+      pages: {
+        options: {
+          remote: 'git@github.com:htanjo/deviant-museum.git',
+          branch: 'gh-pages'
+        }
+      }
+    },
+
     // Run some tasks in parallel to speed up build process
     concurrent: {
       server: [
